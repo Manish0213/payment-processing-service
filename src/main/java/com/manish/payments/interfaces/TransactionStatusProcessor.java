@@ -1,7 +1,9 @@
 package com.manish.payments.interfaces;
 
+import com.manish.payments.dto.TransactionDto;
+
 public interface TransactionStatusProcessor {
 	
-	public String processStatus(int statusId);
+	public TransactionDto processStatus(TransactionDto txnDto);
 	
 }

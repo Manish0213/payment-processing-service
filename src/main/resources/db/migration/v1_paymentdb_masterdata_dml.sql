@@ -2,7 +2,7 @@
 -- Payment_Method
 -- =========================================================
 
-INSERT INTO payments.Payment_Method
+INSERT INTO my_payments.Payment_Method
     (id, name, status, creationDate)
 VALUES
     (1, 'APM', 1, CURRENT_TIMESTAMP(2));
@@ -12,7 +12,7 @@ VALUES
 -- Payment_Type
 -- =========================================================
 
-INSERT INTO payments.Payment_Type
+INSERT INTO my_payments.Payment_Type
     (id, type, status, creationDate)
 VALUES
     (1, 'SALE', 1, CURRENT_TIMESTAMP(2));
@@ -22,7 +22,7 @@ VALUES
 -- Provider
 -- =========================================================
 
-INSERT INTO payments.Provider
+INSERT INTO my_payments.Provider
     (id, providerName, status, creationDate)
 VALUES
     (1, 'PAYPAL', 1, CURRENT_TIMESTAMP(2));
@@ -32,7 +32,7 @@ VALUES
 -- Transaction_Status
 -- =========================================================
 
-INSERT INTO payments.Transaction_Status
+INSERT INTO my_payments.Transaction_Status
     (id, name, status, creationDate)
 VALUES
     (1, 'CREATED',   1, CURRENT_TIMESTAMP(2)),

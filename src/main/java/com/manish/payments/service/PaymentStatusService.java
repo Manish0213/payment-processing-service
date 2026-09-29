@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.manish.payments.constant.ErrorCodeEnum;
+import com.manish.payments.dto.TransactionDto;
 import com.manish.payments.exception.ProcessingServiceException;
 import com.manish.payments.factory.PaymentStatusFactory;
 import com.manish.payments.interfaces.TransactionStatusProcessor;
@@ -19,11 +20,14 @@ public class PaymentStatusService {
 //	private TransactionStatusProcessor transactionStatusProcessor; // not good
 	private final PaymentStatusFactory paymentStatusFactory;
 	
-	public String processPayment(int statusId) {
-		log.info("processing the payment for statusId: {}", statusId);
+	public TransactionDto processPayment(TransactionDto txnDto) {
+		log.info("processing the payment for statusId: {}", txnDto);
+		
+		int statusId = txnDto.getTxnStatusId();
 		
 		TransactionStatusProcessor transactionStatusProcessor =
 				paymentStatusFactory.getStatusProcessor(statusId);
+		log.info("Obtained TransactionStatusProcessor: {}", transactionStatusProcessor);
 		
 		if(transactionStatusProcessor == null) {
 			log.error("No processor found for statusId: {}", statusId);
@@ -35,7 +39,9 @@ public class PaymentStatusService {
 					);
 		}
 		
-		String response = transactionStatusProcessor.processStatus(statusId);
+		TransactionDto response = transactionStatusProcessor.processStatus(txnDto);
+		log.info("Response from TransactionStatusProcessor: {}", response);
+		
 		return response;
 	}
 }

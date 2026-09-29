@@ -43,6 +43,7 @@ public class PaymentStatusFactory {
 			case 6:
 				log.info("Returning FailedStatusProcessor for statusId: {}", statusId);
 				return applicationContext.getBean(FailedStatusProcessor.class);
+				
 			default:
 				log.warn("No status processor found for statusId: {}", statusId);
 				return null;

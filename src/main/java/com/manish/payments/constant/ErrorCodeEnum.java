@@ -10,8 +10,8 @@ public enum ErrorCodeEnum {
 	UNEXPECTED_HTTP_SERVICE_ERROR("30002", "An unexpected error occurred while making the HTTP request"),
 	RESOURCE_NOT_FOUND("30003", "Invalid URL. Please check and try again."),
 	NO_STATUS_PROCESSOR_FOUND("20003", "No status processor found."),
-	PAYPAL_ERROR("30012", "<Error as Paypal>"),
-	PAYPAL_UNKNOWN_ERROR("30009", "An unknown error occurred while processing the PayPal request");
+	PAYPAL_PROVIDER_UNKNOWN_ERROR("30011", "Unknown error occurred in paypal-provider service."),
+	ERROR_UPDATING_TRANSACTION("30012", "Error occurred while updating transaction in DB.");
 	
 	private final String errorCode;
 	private final String errorMessage;

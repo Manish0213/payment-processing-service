@@ -1,5 +1,6 @@
 package com.manish.payments.service.impl.statusprocessor;
 
+import com.manish.payments.dto.TransactionDto;
 import com.manish.payments.interfaces.TransactionStatusProcessor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -8,10 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 public class SuccessStatusProcessor implements TransactionStatusProcessor {
 
 	@Override
-	public String processStatus(int statusId) {
-		log.info("processing the success status for statusId: {}", statusId);
+	public TransactionDto processStatus(TransactionDto txnDto) {
+		log.info("processing the success status for statusId: {}", txnDto.getTxnStatusId());
 		
-		return "status success successfully for statusId: " + statusId;
+		return txnDto;
 	}
 
 }

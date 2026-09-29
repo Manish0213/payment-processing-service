@@ -2,23 +2,23 @@
 -- DATABASE RESET
 -- =========================================================
 
-DROP DATABASE IF EXISTS payments;
+DROP DATABASE IF EXISTS my_payments;
 
-CREATE DATABASE payments;
+CREATE DATABASE my_payments;
 
 -- =========================================================
 -- USER RESET
 -- =========================================================
 
-DROP USER IF EXISTS 'payments'@'*';
+DROP USER IF EXISTS 'payments'@'%';
 
-CREATE USER 'payments'@'*' IDENTIFIED BY 'payments';
+CREATE USER 'payments'@'%' IDENTIFIED BY 'payments';
 
 -- =========================================================
 -- GRANT PERMISSIONS
 -- =========================================================
 
-GRANT ALL PRIVILEGES ON payments.* TO 'payment'@'*';
+GRANT ALL PRIVILEGES ON my_payments.* TO 'payments'@'%';
 
 FLUSH PRIVILEGES;
 
@@ -26,7 +26,7 @@ FLUSH PRIVILEGES;
 -- USE DATABASE
 -- =========================================================
 
-USE payments;
+USE my_payments;
 
 -- =========================================================
 -- Transaction_Status
@@ -71,20 +71,6 @@ CREATE TABLE Payment_Type (
 
 
 -- =========================================================
--- Payment_Status
--- =========================================================
-
-CREATE TABLE Payment_Status (
-    id INT NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    status TINYINT NOT NULL DEFAULT 1,
-    creationDate TIMESTAMP(2) NOT NULL DEFAULT CURRENT_TIMESTAMP(2),
-
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-
--- =========================================================
 -- Payment_Method
 -- =========================================================
 
@@ -103,7 +89,7 @@ CREATE TABLE Payment_Method (
 -- =========================================================
 
 CREATE TABLE Transaction (
-    id INT NOT NULL,
+    id INT NOT NULL AUTO_INCREMENT,
     userId INT NOT NULL,
 
     paymentTypeId INT NOT NULL,
