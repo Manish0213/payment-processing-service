@@ -3,6 +3,7 @@ package com.manish.payments.service.impl;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import com.manish.payments.pojo.InitiatePaymentRequest;
 import com.manish.payments.pojo.PaymentResponse;
 import com.manish.payments.service.PaymentService;
 import com.manish.payments.service.PaymentStatusService;
+import com.manish.payments.service.helper.PPCaptureOrderHelper;
 import com.manish.payments.service.helper.PPCreateOrderHelper;
 
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,8 @@ public class PaymentServiceImpl implements PaymentService{
 	
 	private final TransactionDao transactionDao;
 	
-
+	private final PPCaptureOrderHelper ppCaptureOrderHelper;
+	
 	@Override
 	public PaymentResponse createPayment(CreatePaymentRequest createPaymentRequest) {
 		log.info("Creating payment with request: {}", createPaymentRequest);
@@ -69,7 +72,8 @@ public class PaymentServiceImpl implements PaymentService{
 
 	@Override
 	public PaymentResponse initiatePayment(String txnReference, InitiatePaymentRequest initiatePaymentRequest) {
-		log.info("initiating payment for txnReference: {} || initiatePaymentRequest: {}", txnReference, initiatePaymentRequest);
+		log.info("initiating payment for txnReference: {} || initiatePaymentRequest: {}", 
+				txnReference, initiatePaymentRequest);
 		
 		TransactionEntity txnEntity = transactionDao.getTransactionByTxnReference(txnReference);
 		log.info("Fetched TransactionEntity from database for txnReference: {} || txnEntity: {}", txnReference, txnEntity);
@@ -83,12 +87,14 @@ public class PaymentServiceImpl implements PaymentService{
 		
 		HttpRequest httpRequest = ppCreateOrderHelper.prepareHttpRequest(
 				txnReference, initiatePaymentRequest, txnDto);
-		log.info("HttpRequest prepared for txnReference: {} || httpRequest: {}", txnReference, httpRequest);
+		log.info("HttpRequest prepared for txnReference: {} || httpRequest: {}", 
+				txnReference, httpRequest);
 		
 		PPOrderResponse ppOrderResponse = null;
 		try {
 		ResponseEntity<String> httpResponse =  httpServiceEngine.makeHttpCall(httpRequest);
-		log.info("HttpResponse received for txnReference: {} || httpResponse: {}", txnReference, httpResponse);
+		log.info("HttpResponse received for txnReference: {} || httpResponse: {}", 
+				txnReference, httpResponse);
 		
 //		OrderResponse orderResponse = processResponse(httpResponse); totally wrong 
 		
@@ -141,9 +147,67 @@ public class PaymentServiceImpl implements PaymentService{
 	}
 
 	@Override
-	public String capturePayment(String txnReference) {
-		// TODO Auto-generated method stub
-		return "Payment captured for txnReference: " + txnReference;
+	public PaymentResponse capturePayment(String txnReference) {
+		log.info("Capturing payment for txnReference: {}", txnReference);
+		
+		TransactionEntity txnEntity = transactionDao.getTransactionByTxnReference(txnReference);
+		log.info("Fetched TransactionEntity from database for txnReference: {} || txnEntity: {}", 
+				txnReference, txnEntity);
+		
+		// check if status is already in failed status
+		if(txnEntity.getTxnStatusId() == 6) {
+			throw new ProcessingServiceException (
+				ErrorCodeEnum.ALREADY_PROCESSED_STATUS.getErrorCode(),
+				ErrorCodeEnum.ALREADY_PROCESSED_STATUS.getErrorMessage(),
+				HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+				
+		// check if status is already in success status
+		// TODO
+		
+		TransactionDto txnDto = modelMapper.map(txnEntity, TransactionDto.class);
+		log.info("Mapped TransactionDto to TransactionEntity: {}", txnEntity);
+		
+		// update to APPROVED status
+		int statusId = 4;
+		txnDto.setTxnStatusId(statusId); // APPROVED
+		TransactionDto response = paymentStatusService.processPayment(txnDto);
+		log.info("Response from PaymentStatusService after processing payment: {}", response);
+		
+		HttpRequest httpRequest = ppCaptureOrderHelper.prepareCaptureOrderRequest(txnDto);
+		log.info("HttpRequest prepared for txnReference: {} || httpRequest: {}", 
+				txnReference, httpRequest);
+		
+		try {
+		ResponseEntity<String> httpResponse = httpServiceEngine.makeHttpCall(httpRequest);
+		log.info("HttpResponse received for txnReference: {} || httpResponse: {}", 
+				txnReference, httpResponse);
+		
+		PPOrderResponse ppOrderResponse = ppCaptureOrderHelper.processResponse(httpResponse);
+		log.info("Processed HttpResponse to PPOrderResponse: {}", ppOrderResponse);
+		} catch(Exception e) {
+			log.error("Error occurred while making captureOrder HTTP call to PayPalProvider: ", e);
+			
+// 			Note, don't change the status to FAILED since user already APPROVED.
+//			Let reconciliation job handle such cases.
+//			In case reconciliation also resolved it as failed,
+//			then manually back-office can handle this payment..
+//			just throw error back
+			
+			throw e;
+		}
+		
+		// update status to SUCCESS
+		statusId = 5;
+		txnDto.setTxnStatusId(statusId); // SUCCESS
+		response = paymentStatusService.processPayment(txnDto);
+		log.info("Response from PaymentStatusService after processing payment: {}", response);
+		
+		PaymentResponse paymentResponse = new PaymentResponse();
+		paymentResponse.setTxnReference(txnReference);
+		paymentResponse.setTxnStatusId(response.getTxnStatusId());
+		
+		return paymentResponse;
 	}
 	
 //	private void processResponse(ResponseEntity<String> httpResponse, TransactionDto response) {

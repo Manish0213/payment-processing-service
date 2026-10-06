@@ -64,8 +64,9 @@ public class PPCreateOrderHelper {
 	public PPOrderResponse processResponse(ResponseEntity<String> httpResponse) {
 		log.info("Processing response from PayPal API... || httpResponse: {}", httpResponse);
 		
-		if(httpResponse.getStatusCode().is2xxSuccessful()) {
-			log.info("Received successful response from PayPal API: {}", httpResponse.getBody());
+		if(httpResponse.getStatusCode().equals(HttpStatus.OK)) {
+			log.info("Received successful response from PayPal API: {}", 
+					httpResponse.getBody());
 			
 			PPOrderResponse ppOrderResponse = jsonUtil.fromJson(
 					httpResponse.getBody(), PPOrderResponse.class);
@@ -75,10 +76,11 @@ public class PPCreateOrderHelper {
 					&& ppOrderResponse.getOrderId() != null
 					&& !ppOrderResponse.getOrderId().isEmpty()
 					&& ppOrderResponse.getPaypalStatus() != null
-					&& !ppOrderResponse.getPaypalStatus().equalsIgnoreCase(Constant.PAYER_ACTION_REQUIRED)
+					&& ppOrderResponse.getPaypalStatus().equalsIgnoreCase(Constant.PAYER_ACTION_REQUIRED)
 					&& ppOrderResponse.getRedirectUrl() != null
 					&& !ppOrderResponse.getRedirectUrl().isEmpty()) {
 				log.info("Parsed PayPal API response contains all required fields");
+				
 				return ppOrderResponse;
 			}
 		}

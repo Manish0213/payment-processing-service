@@ -39,10 +39,10 @@ public class PaymentController {
 	}
 	
 	@PostMapping("/payment/{txnReference}/capture")
-	public String capturePayment(@PathVariable String txnReference) {
+	public PaymentResponse capturePayment(@PathVariable String txnReference) {
 		log.info("capture payment for txnReference: {}", txnReference);
 		
-		String response = paymentService.capturePayment(txnReference);
+		PaymentResponse response = paymentService.capturePayment(txnReference);
 		return response;
 	}
 }
